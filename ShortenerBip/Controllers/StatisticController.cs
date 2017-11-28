@@ -64,7 +64,7 @@ namespace ShortenerBip.Controllers
             }
             catch (Exception e)
             {
-                var jsonResult = new { error = "Authorization error!" };
+                var jsonResult = new { error = "Database error!" };
                 return new JsonResult(jsonResult);
             }
 
