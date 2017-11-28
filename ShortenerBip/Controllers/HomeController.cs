@@ -50,7 +50,7 @@ namespace ShortenerBip.Controllers
                 if (result == null)
                     return NotFound();
 
-                await SaveStats(result);
+                SaveStats(result);
 
                 if (result.RedirectType == 302)
                     return Redirect(result.RedirectURL);
@@ -65,9 +65,9 @@ namespace ShortenerBip.Controllers
         }
 
 
-        private async Task SaveStats(URLModel model)
+        private void SaveStats(URLModel model)
         {
-            Stats stats = _context.Stats.FirstOrDefault(x => x.URLModel.ID == model.ID);
+            Stats stats = _context.Stats.FirstOrDefault(x => x.URLModel == model);
             {
                 if (stats == null)
                 {
