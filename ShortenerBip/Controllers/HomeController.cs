@@ -50,7 +50,8 @@ namespace ShortenerBip.Controllers
                 if (result == null)
                     return NotFound();
 
-                SaveStats(result);
+                if (result != null)
+                    SaveStats(result);
 
                 if (result.RedirectType == 302)
                     return Redirect(result.RedirectURL);
