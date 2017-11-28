@@ -41,7 +41,7 @@ namespace ShortenerBip.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> IndexAsync(String id)
+        public IActionResult Index(String id)
         {
             try
             {
