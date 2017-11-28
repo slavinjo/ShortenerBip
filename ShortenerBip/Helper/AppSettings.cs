@@ -8,5 +8,6 @@ namespace ShortenerBip.Helper
     public class AppSettings
     {
         public string Secret { get; set; }
+        public string AppUrl { get; set; }
     }
 }

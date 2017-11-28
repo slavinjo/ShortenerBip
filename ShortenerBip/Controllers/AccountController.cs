@@ -23,7 +23,6 @@ namespace ShortenerBip.Controllers
         private IUserInterface _userService;
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
-
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         //private readonly IConfiguration _configuration;
@@ -50,8 +49,16 @@ namespace ShortenerBip.Controllers
         public IActionResult Post([FromBody]User userDto)
         {
             // map dto to entity
-            var user = _mapper.Map<User>(userDto);
-            return SaveUser(user);
+            if (ModelState.IsValid)
+            {
+                var user = _mapper.Map<User>(userDto);
+                return SaveUser(user);
+            }
+            else
+            {
+                var jsonResult = new { Success = false, Description = "Invalid data." };
+                return new JsonResult(jsonResult);
+            }
         }
 
         //https://andrewlock.net/model-binding-json-posts-in-asp-net-core/

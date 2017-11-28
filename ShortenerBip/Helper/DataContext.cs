@@ -12,6 +12,10 @@ namespace ShortenerBip.Helper
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
-        public DbSet<User> Users { get; set; }        
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<URLModel> URL { get; set; }
+
+        public DbSet<Stats> Stats { get; set; }
     }
 }

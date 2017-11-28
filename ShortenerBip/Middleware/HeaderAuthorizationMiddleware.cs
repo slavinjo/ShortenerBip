@@ -33,18 +33,13 @@ namespace ShortenerBip.Middleware
             string authHeader = context.Request.Headers["Authorization"];
             if (!string.IsNullOrEmpty(authHeader))
             {
-                //TODO
-                //extract credentials from authHeader and do some sort or validation
-                
                 _dataContext = dbContext;
-
-                bool isHeaderValid = ValidateCredentials(authHeader);
+                bool isHeaderValid = ValidateCredentials(authHeader,_dataContext);
                 if (isHeaderValid)
                 {
                     await _next.Invoke(context);
                     return;
                 }
-
             }
 
             //Reject request if there is no authorization header or if it is not valid
@@ -67,9 +62,9 @@ namespace ShortenerBip.Middleware
             return $"{request.Scheme} {request.Host}{request.Path} {request.QueryString} {bodyAsText}";
         }
 
-        private bool ValidateCredentials(string token)
+        public static bool ValidateCredentials(string token, DataContext con)
         {
-            if (_dataContext.Users.Any(x => x.Token == token))
+            if (con.Users.Any(x => x.Token == token))
                 return true;
             return false;
         }  

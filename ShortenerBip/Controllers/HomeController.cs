@@ -20,26 +20,70 @@ namespace ShortenerBip.Controllers
         private IUserInterface _userService;
         private IMapper _mapper;
         private readonly AppSettings _appSettings;
-
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private User user;
+        private DataContext _context;
 
        // public UserManager<User> UserManager => _userManager;
 
         //private readonly IConfiguration _configuration;
 
 
-        public HomeController(IUserInterface userService, IMapper mapper,IOptions<AppSettings> appSettings, SignInManager<User> signInManager, UserManager<User> userManager)
+        public HomeController(IUserInterface userService, IMapper mapper,IOptions<AppSettings> appSettings, SignInManager<User> signInManager, UserManager<User> userManager, DataContext context)
         {
             _userService = userService;
             _mapper = mapper;
             _appSettings = appSettings.Value;
             _signInManager = signInManager;
             _userManager = userManager;
+            _context = context;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> IndexAsync(String id)
+        {
+            try
+            {
+                var result = _context.URL.Where(x => x.ShortCode == _appSettings.AppUrl + id).FirstOrDefault();
+
+                if (result == null)
+                    return NotFound();
+
+                await SaveStats(result);
+
+                if (result.RedirectType == 302)
+                    return Redirect(result.RedirectURL);
+                else
+                    return RedirectPermanent(result.RedirectURL);
+                
+            }
+            catch (Exception)
+            {
+                return NotFound();
+            }
         }
 
 
+        private async Task SaveStats(URLModel model)
+        {
+            Stats stats = _context.Stats.FirstOrDefault(x => x.URLModel.ID == model.ID);
+            {
+                if (stats == null)
+                {
+                    stats = new Stats();
+                    stats.URLModel = model;
+                    stats.HitCount++;
+                    _context.Stats.Add(stats);
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    stats.HitCount++;
+                    _context.Update(stats);
+                }
+            }
+        }
 
         public IActionResult Index()
         {
