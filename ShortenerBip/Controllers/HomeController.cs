@@ -51,7 +51,7 @@ namespace ShortenerBip.Controllers
                     return NotFound();
 
                 if (result != null)
-                    SaveStats(result);
+                    Stats.SaveStats(result, _context);
 
                 if (result.RedirectType == 302)
                     return Redirect(result.RedirectURL);
@@ -59,32 +59,12 @@ namespace ShortenerBip.Controllers
                     return RedirectPermanent(result.RedirectURL);
                 
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 return NotFound();
             }
         }
 
-
-        private void SaveStats(URLModel model)
-        {
-            Stats stats = _context.Stats.FirstOrDefault(x => x.URLModel == model);
-            {
-                if (stats == null)
-                {
-                    stats = new Stats();
-                    stats.URLModel = model;
-                    stats.HitCount++;
-                    _context.Stats.Add(stats);
-                    _context.SaveChanges();
-                }
-                else
-                {
-                    stats.HitCount++;
-                    _context.Update(stats);
-                }
-            }
-        }
 
         public IActionResult Index()
         {

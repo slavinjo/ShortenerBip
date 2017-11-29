@@ -24,7 +24,7 @@ namespace ShortenerBip.Controllers
         }
 
         [MiddlewareFilter(typeof(HeaderAuthorizationPipeline))]
-        [HttpGet("{id}")]
+        [HttpGet("{accountId}")]
         public IActionResult Get(String accountId)
         {          
             try
@@ -44,7 +44,7 @@ namespace ShortenerBip.Controllers
                         //{
                         //    var jsonResult = new { s.URLModel.RedirectURL, s.HitCount };                            
                         //}
-                        var itemList = (from items in _context.Stats where items.URLModel.AccountId.Equals(accountId) select new {  items.URLModel.RedirectURL, value = items.HitCount}).ToList();
+                        var itemList = (from items in _context.Stats where items.URLModel.AccountId == accountId select new {  items.URLModel.RedirectURL, hitCount = items.HitCount}).ToList();
 
                         return Json(itemList);
 
