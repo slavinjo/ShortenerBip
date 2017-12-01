@@ -46,13 +46,13 @@ namespace ShortenerBip.Controllers
         //ovo je ako hocemo slati json, ja koristim form poziv dolje
         [AllowAnonymous]
         [HttpPost]
-        public IActionResult Post([FromBody]User userDto)
+        public async Task<IActionResult> Post([FromBody]User userDto)
         {
             // map dto to entity
             if (ModelState.IsValid)
             {
                 var user = _mapper.Map<User>(userDto);
-                return SaveUser(user);
+                return await SaveUser(user);
             }
             else
             {
@@ -61,26 +61,40 @@ namespace ShortenerBip.Controllers
             }
         }
 
-        //https://andrewlock.net/model-binding-json-posts-in-asp-net-core/
-        [AllowAnonymous]
-        [HttpPost("register")]
-        public IActionResult RegisterModel(User user)
-        {
-            return SaveUser(user);
-        }
+        ////https://andrewlock.net/model-binding-json-posts-in-asp-net-core/
+        //[AllowAnonymous]
+        //[HttpPost("register")]
+        //public IActionResult RegisterModel(User user)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        return SaveUser(user);
+        //    }
+        //    return NotFound();
+        //}
 
-        private JsonResult SaveUser(User userModel)
+        private async Task<JsonResult> SaveUser(User userModel)
         {
-            User regUser = null;
             try
             {
                 var user = Json(userModel);
                 //save
-                regUser = _userService.Create(userModel);
-                Task<IActionResult> rez = Authenticate(regUser); /*todo*/
+                //  regUser = _userService.Create(userModel);
+                String password = Password.GeneratePassword(8, 0);
+                userModel.Password = password;
+                userModel.UserName = userModel.AccountId;
+                userModel.Token = userModel.Password;
+
+                ObjectResult rez = await Authenticate(userModel); /*todo*/
+                if (rez.StatusCode != 400)
+                {
+                    var jsonResultOK = new { Success = true, /*AccountId = regUser.AccountId,*/ Password = userModel.Password, Description = "Your account is opened." };
+                    return new JsonResult(jsonResultOK);
+                }
+
                 //return rez;
                 //return RedirectToAction("UserRegistered", "Account", userModel);
-                var jsonResult = new { Success = true, /*AccountId = regUser.AccountId,*/ Password = regUser.Password, Description = "Your account is opened." };
+                var jsonResult = new { Success = false, Description = rez.Value.ToString() };
                 return new JsonResult(jsonResult);
             }
             catch (AppException ex)
@@ -91,45 +105,101 @@ namespace ShortenerBip.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody]User userDto)
+        private async Task<IActionResult> SaveUserResult(User userModel)
         {
-            var user = _userService.Authenticate(userDto.AccountId, userDto.Password);
-
-            if (user == null)
-                return Unauthorized();
             try
             {
-                //var result = await _userManager.CreateAsync(user, user.AccountId);
+                //regUser = _userService.Create(userModel); /*todo*/
+                //await Authenticate(regUser); /*todo*/
+                String password = Password.GeneratePassword(8, 0);
+                userModel.Password = password;
+                userModel.UserName = userModel.AccountId;
+                userModel.Token = userModel.Password;
+                var result = await Authenticate(userModel);
+                if (result.StatusCode != 400)
+                    return Redirect("/Home/UserScreen/?" + userModel.Token);
+                else
+                    return View(userModel);
+            }
+            catch (AppException ex)
+            {
+                // return error message if there was an exception
+                return NotFound("Error" + ex.Message);
+            }
+        }
 
-                //if (result.Succeeded)
-                //{
-                    await _signInManager.SignInAsync(user, false);
-                    
-                    //return token;
-                //}
-                //else
-                //{
-                //    throw new ApplicationException("Autentifikacija nije uspjela!");
-                //}
+
+        [AllowAnonymous]
+        [HttpPost("authenticate")]
+        public async Task<ObjectResult> Authenticate([FromBody]User userDto)
+        {
+            //var user = _userService.Authenticate(userDto.AccountId, userDto.Password);
+
+            //if (user == null)
+            //    return Unauthorized();
+
+            try
+            {
+                // var result = await _userManager.CreateAsync(user); /*todo*/
+                var result = await _userManager.CreateAsync(userDto);
+
+                if (result.Succeeded)
+                {
+                    //await _signInManager.SignInAsync(userDto, false);
+                    await _signInManager.SignInAsync(userDto, false);
+                }
+                else
+                {
+                    //throw new ApplicationException("Autentifikacija nije uspjela!");
+                    return BadRequest(result.Errors.ElementAt(0).Description);
+                }
             }
             catch (Exception e)
             {
-                throw new ApplicationException("Autentifikacija nije uspjela!");
+                //throw new ApplicationException("Autentifikacija nije uspjela!");
+                return BadRequest(e.Message);
             }
 
 
+            //return Ok(new
+            //{
+            //    Id = user.Id,
+            //    Username = user.AccountId,
+            //    Password = user.Password,
+            //    Token = user.Password
+            //});
+
             return Ok(new
             {
-                Id = user.Id,
-                Username = user.AccountId,
-                Password = user.Password,
-                Token = user.Password
+                Id = userDto.Id,
+                Username = userDto.AccountId,
+                Password = userDto.Password,
+                Token = userDto.Password
             });
         }
 
 
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("register")]
+        public async Task<IActionResult> Register(User model, string returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
+            {
+                return await SaveUserResult(model);           
+            }
+            return View();
+        }
+
+        [HttpGet]
+        [Route("register")]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
 
     }
+        
 }

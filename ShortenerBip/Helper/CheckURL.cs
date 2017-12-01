@@ -16,7 +16,7 @@ namespace ShortenerBip.Helper
                 try
                 {
                     var client = new HttpClient();
-                    client.Timeout = TimeSpan.FromSeconds(2);
+                    client.Timeout = TimeSpan.FromSeconds(5);
                     var response = await client.GetAsync(url);
                     if (response.StatusCode == HttpStatusCode.OK)
                     {

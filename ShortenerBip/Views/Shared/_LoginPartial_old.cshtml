@@ -1,0 +1,76 @@
+
+<form  class="navbar-right">
+    <ul class="nav navbar-nav navbar-right">
+        <li><input id="username" name="username" type="text" /></li>
+    </ul>
+    </form>
+
+<ul class="nav navbar-nav navbar-right">
+    <li><button type="button" id="btnSaveUser"
+        onclick="CreateUser()">
+    Register
+</button></li>
+    <li><button type="button" id="btnLoginUSer"
+        onclick="LoginUser()">
+    Login
+</button></li>
+</ul>
+
+    <script>
+        var token;
+
+        function CreateUser() {
+            var user = $('#username').val();
+            $.ajax({
+                type: "POST",
+                url: "/Account",
+                async: true,
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({ "AccountId": user }),
+                success: function (msg)
+                {
+                    token = msg.password;
+                    if (!msg.success) {
+                        $('#username').val('');
+                        alert(msg.description);
+                    }
+                    else {
+                        // window.location.href = "/Home/UserScreen";
+                        $('#username').val('');
+                        //alert(token);
+                        Redirect(token);
+                       // LoginUser();
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {                
+                    $('#username').val('');
+                    alert(xhr.status + " " + thrownError);
+                }
+            });
+        }
+
+        function LoginUser() {
+            var user = token;
+            $.ajax({
+                headers: { "Authorization": token },
+                type: "GET",
+                url: "/Home/About",
+                async: true,            
+                success: function (msg) {
+                    alert(JSON.stringify(msg, null, 4));
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status + " " + thrownError);
+                   // alert(token);
+                    
+                }
+            });
+        }
+
+        function Redirect(userToken) {
+            window.location.href = '/Home/UserScreen/?' + userToken;
+        }
+        
+
+    </script>

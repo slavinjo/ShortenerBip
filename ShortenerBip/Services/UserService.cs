@@ -40,7 +40,7 @@ namespace ShortenerBip.Services
             //    return null;
 
             // authentication successful
-            _signInManager.SignInAsync(user,true);
+            //_signInManager.SignInAsync(user,true); /*u drugi call*/
             return user;
         }
 

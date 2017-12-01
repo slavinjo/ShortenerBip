@@ -12,6 +12,7 @@ namespace ShortenerBip.Models
         [Key]
         public int ID { get; set; }
         public int HitCount { get; set; } = 0;
+        [Key]
         public URLModel URLModel { get; set; }
 
 

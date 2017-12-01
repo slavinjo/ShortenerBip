@@ -79,7 +79,7 @@ namespace ShortenerBip.Controllers
         }
 
         public IActionResult UserScreen()
-        {
+        {           
             try
             {
                 String password = Request.QueryString.Value;

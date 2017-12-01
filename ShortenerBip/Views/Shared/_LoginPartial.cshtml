@@ -1,76 +1,26 @@
+@using Microsoft.AspNetCore.Identity
 
-<form  class="navbar-right">
-    <ul class="nav navbar-nav navbar-right">
-        <li><input id="username" name="username" type="text" /></li>
-    </ul>
+
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
+        <ul class="nav navbar-nav navbar-right">
+            <li>
+                <a asp-area="" asp-controller="Manage" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
+            </li>
+            <li>
+                <button type="submit" class="btn btn-link navbar-btn navbar-link">Log out</button>
+            </li>
+        </ul>
     </form>
-
-<ul class="nav navbar-nav navbar-right">
-    <li><button type="button" id="btnSaveUser"
-        onclick="CreateUser()">
-    Register
-</button></li>
-    <li><button type="button" id="btnLoginUSer"
-        onclick="LoginUser()">
-    Login
-</button></li>
-</ul>
-
-    <script>
-        var token;
-
-        function CreateUser() {
-            var user = $('#username').val();
-            $.ajax({
-                type: "POST",
-                url: "/Account",
-                async: true,
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify({ "AccountId": user }),
-                success: function (msg)
-                {
-                    token = msg.password;
-                    if (!msg.success) {
-                        $('#username').val('');
-                        alert(msg.description);
-                    }
-                    else {
-                        // window.location.href = "/Home/UserScreen";
-                        $('#username').val('');
-                        //alert(token);
-                        Redirect(token);
-                       // LoginUser();
-                    }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {                
-                    $('#username').val('');
-                    alert(xhr.status + " " + thrownError);
-                }
-            });
-        }
-
-        function LoginUser() {
-            var user = token;
-            $.ajax({
-                headers: { "Authorization": token },
-                type: "GET",
-                url: "/Home/About",
-                async: true,            
-                success: function (msg) {
-                    alert(JSON.stringify(msg, null, 4));
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    alert(xhr.status + " " + thrownError);
-                   // alert(token);
-                    
-                }
-            });
-        }
-
-        function Redirect(userToken) {
-            window.location.href = '/Home/UserScreen/?' + userToken;
-        }
-        
-
-    </script>
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li><a asp-area="" asp-controller="Account" asp-action="Register">Register</a></li>
+        <li><a asp-area="" asp-controller="Account" asp-action="Login">Log in</a></li>
+    </ul>
+}
