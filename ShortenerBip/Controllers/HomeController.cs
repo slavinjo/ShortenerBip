@@ -11,6 +11,10 @@ using Microsoft.AspNetCore.Identity;
 using ShortenerBip.Helper;
 using Microsoft.Extensions.Options;
 using ShortenerBip.Middleware;
+using Microsoft.AspNetCore.Authorization;
+using System.IO;
+using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ShortenerBip.Controllers
 {
@@ -22,15 +26,16 @@ namespace ShortenerBip.Controllers
         private readonly AppSettings _appSettings;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private User user;
+      //  private User user;
         private DataContext _context;
+        IHostingEnvironment _env;
 
-       // public UserManager<User> UserManager => _userManager;
+        // public UserManager<User> UserManager => _userManager;
 
         //private readonly IConfiguration _configuration;
 
 
-        public HomeController(IUserInterface userService, IMapper mapper,IOptions<AppSettings> appSettings, SignInManager<User> signInManager, UserManager<User> userManager, DataContext context)
+        public HomeController(IUserInterface userService, IMapper mapper,IOptions<AppSettings> appSettings, SignInManager<User> signInManager, UserManager<User> userManager, DataContext context, IHostingEnvironment e)
         {
             _userService = userService;
             _mapper = mapper;
@@ -38,6 +43,7 @@ namespace ShortenerBip.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
+            _env = e;
         }
 
         [HttpGet("{id}")]
@@ -68,23 +74,37 @@ namespace ShortenerBip.Controllers
 
         public IActionResult Index()
         {
+            //return File(System.IO.File.OpenRead(Path.Combine(_env.WebRootPath + "/help.html")), "text/html");
             return View();
         }
 
-        [MiddlewareFilter(typeof(HeaderAuthorizationPipeline))]
+        //[MiddlewareFilter(typeof(HeaderAuthorizationPipeline))]
+        [Authorize]
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";
             return View();
         }
+        
 
-        public IActionResult UserScreen()
+        [Authorize]
+        public IActionResult UserScreen(User model)
         {           
             try
             {
-                String password = Request.QueryString.Value;
-                user = _signInManager.UserManager.Users.SingleOrDefault(x => x.Password == password.Substring(1, password.Length - 1));
+                //String password = Request.QueryString.Value;
+                //user = _signInManager.UserManager.Users.SingleOrDefault(x => x.Password == password.Substring(1, password.Length - 1));
+                String password = model.Password;
+                User user = _signInManager.UserManager.Users.SingleOrDefault(x => x.Password == model.Password);
                 //ViewData["Message"] = "Your application description page.";
+                if (user == null)
+                {
+                   String usero = HttpContext.User.Claims.First().Value;
+                   user = _signInManager.UserManager.Users.SingleOrDefault(x => x.Id == usero);
+                }
+
+     
+
                 return View(user);
             }
             catch (Exception e)
@@ -93,11 +113,20 @@ namespace ShortenerBip.Controllers
             }
         }
 
-        public IActionResult Contact()
+        public IActionResult Contact(User mod)
         {
             ViewData["Message"] = "Your contact page.";
 
+            return View(mod);
+        }
+
+        [Route("help")]
+        public IActionResult Help()
+        {
+            ViewData["Message"] = "Help";
+
             return View();
+            //return File(System.IO.File.OpenRead(Path.Combine(_env.WebRootPath + "/help.html")), "text/html");
         }
 
         public IActionResult Error()

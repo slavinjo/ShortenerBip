@@ -1,4 +1,8 @@
-﻿@{
+﻿@inject ShortenerBip.Helper.DataContext dc
+@model User
+
+
+@{
     ViewData["Title"] = "Contact";
 }
 <h2>@ViewData["Title"]</h2>
@@ -15,3 +19,41 @@
     <strong>Support:</strong> <a href="mailto:Support@example.com">Support@example.com</a><br />
     <strong>Marketing:</strong> <a href="mailto:Marketing@example.com">Marketing@example.com</a>
 </address>
+
+
+<div>
+    <form>
+
+        <span>New URL:</span>
+        <input id="URLRedirect" type="text" name="txtURLRedirect" />
+        <input id="Submit1" type="submit" value="Register" onclick="CreateShortLink()" />
+
+    </form>
+</div>
+
+
+<script>
+        var token;
+
+        function CreateShortLink() {
+            var user = token;
+            $.ajax({
+                headers: { "Authorization": "B6ZHP62p"},
+                type: "POST",
+                url: "/Register",
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({RedirectURL: "www.youtube.com", RedirectType: 301 }),
+                async: true,
+                success: function (msg) {
+                    alert(JSON.stringify(msg, null, 4));
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status + " " + thrownError);
+                   // alert(token);
+
+                }
+            });
+        }
+
+</script>

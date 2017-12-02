@@ -1,0 +1,68 @@
+﻿@using Microsoft.EntityFrameworkCore;
+@using System.Linq;
+@inject ShortenerBip.Helper.DataContext dc
+@model User
+
+@{  
+    // var statList = (dc.Stats.Where(x => x.URLModel.AccountId == Model.AccountId)).ToList();
+
+    var statList = dc.Stats
+                  .Include("URLModel")
+                  .Where(m => m.URLModel.AccountId == Model.AccountId).ToList();
+
+
+    var urlList = dc.URL
+                 
+                 .Where(m => m.AccountId == Model.AccountId).ToList();
+}
+
+<table class="mtable" style="margin-top:50px; margin-left:50px;" >
+    <thead>
+        <tr>
+            <th>
+                Stats
+                <a onClick="window.location.reload()"> - Refresh</a>
+            </th>            
+        </tr>
+    </thead>
+    <tbody> 
+    @foreach (var item in statList)
+    {
+        <tr>
+            <td>
+                <a href=@item.URLModel.RedirectURL>@item.URLModel.RedirectURL</a>
+                @*@Html.DisplayFor(modelItem => item.URLModel.RedirectURL)*@
+            </td>
+            <td>              
+                @Html.DisplayFor(modelItem => item.HitCount)
+            </td>
+        </tr>   
+    }
+</tbody>
+</table>
+
+
+<table class="mtable" style="margin-top:50px; margin-left:50px;">
+    <thead>
+        <tr>
+            <th>
+                Registered URLs
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in urlList)
+        {
+            <tr>
+                <td>
+                    <a href=@item.RedirectURL>@item.RedirectURL</a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ShortCode)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+

@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 
 namespace ShortenerBip.Controllers
 {
@@ -41,9 +44,8 @@ namespace ShortenerBip.Controllers
         }
 
 
-        //ovo se nemre overloadat, kaze covjek
+     
         //https://andrewlock.net/model-binding-json-posts-in-asp-net-core/
-        //ovo je ako hocemo slati json, ja koristim form poziv dolje
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]User userDto)
@@ -115,9 +117,12 @@ namespace ShortenerBip.Controllers
                 userModel.Password = password;
                 userModel.UserName = userModel.AccountId;
                 userModel.Token = userModel.Password;
+          //      _signInManager.UserManager.FindByIdAsync(userModel.Id);
+
                 var result = await Authenticate(userModel);
                 if (result.StatusCode != 400)
-                    return Redirect("/Home/UserScreen/?" + userModel.Token);
+                    //return RedirectToAction("UserScreen","Home", userModel);
+                    return Redirect("/Home/UserScreen");
                 else
                     return View(userModel);
             }
@@ -137,16 +142,20 @@ namespace ShortenerBip.Controllers
 
             //if (user == null)
             //    return Unauthorized();
-
+            
             try
             {
-                // var result = await _userManager.CreateAsync(user); /*todo*/
-                var result = await _userManager.CreateAsync(userDto);
+                
+                //await _userManager.AddClaimAsync(userDto, new System.Security.Claims.Claim("ID", userDto.Id));
+                var result = await _userManager.CreateAsync(userDto);           
 
                 if (result.Succeeded)
                 {
+                   // HttpContext.User = await _signInManager.ClaimsFactory.CreateAsync(userDto);
+                   // await _signInManager.CreateUserPrincipalAsync(userDto);
                     //await _signInManager.SignInAsync(userDto, false);
                     await _signInManager.SignInAsync(userDto, false);
+                   
                 }
                 else
                 {
@@ -200,6 +209,76 @@ namespace ShortenerBip.Controllers
         }
 
 
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("login")]
+        public async Task<IActionResult> Login(string returnUrl = null)
+        {
+            /*clean cookie*/
+            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("login")]
+        public async Task<IActionResult> Login(User model, string returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
+            {
+                //var result = await _signInManager.PasswordSignInAsync(model.AccountId, model.Password, true, lockoutOnFailure: false);
+                var result =  _userManager.Users.FirstOrDefault(p => p.Password == model.Password && p.AccountId == model.AccountId);
+
+                //_userManager.Users.Where(p => p.Password == model.Password && p.AccountId== model.AccountId).FirstOrDefault();
+              
+                if (result != null)
+                {
+                    await _signInManager.SignInAsync(result, false);
+                    returnUrl = "/Home/UserScreen/?" + model.Password;
+                    return Redirect("/Home/UserScreen");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    return View(model);
+                }
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [Route("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("lockout")]
+        public IActionResult Lockout()
+        {
+            return View();
+        }
+
+        private IActionResult RedirectToLocal(string returnUrl)
+        {
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            else
+            {
+                return RedirectToAction(nameof(HomeController.Index), "Home");
+            }
+        }
     }
         
 }

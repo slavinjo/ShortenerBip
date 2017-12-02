@@ -32,7 +32,7 @@ namespace ShortenerBip.Controllers
                 string authHeader = HttpContext.Request.Headers["Authorization"]; 
                 if (!string.IsNullOrEmpty(authHeader))
                 {
-                    bool isHeaderValid = HeaderAuthorizationMiddleware.ValidateCredentials(authHeader, _context);
+                    bool isHeaderValid = HeaderAuthorizationMiddleware.ValidateCredentialsForStats(authHeader, accountId, _context);
                     if (isHeaderValid)
                     {
                         var user = _context.Users.SingleOrDefault(s => s.Token == authHeader);
@@ -51,7 +51,7 @@ namespace ShortenerBip.Controllers
                     }
                     else
                     {
-                        var jsonResult = new { error = "Invalid user!" };
+                        var jsonResult = new { error = "You can not see stats of another user!" };
                         return new JsonResult(jsonResult);
                     }
 

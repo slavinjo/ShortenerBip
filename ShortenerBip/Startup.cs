@@ -50,7 +50,9 @@ namespace ShortenerBip
                 option.Password.RequireLowercase = false;
                 option.Password.RequireNonAlphanumeric = false;
                 option.Password.RequireUppercase = false;
-            }).AddEntityFrameworkStores<DataContext>()
+
+                
+            }).AddEntityFrameworkStores<DataContext>()        
             .AddDefaultTokenProviders();
 
 
@@ -71,8 +73,9 @@ namespace ShortenerBip
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
+            //app.UseDefaultFiles();
             app.UseStaticFiles();
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {

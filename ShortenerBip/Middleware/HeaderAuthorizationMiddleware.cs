@@ -67,6 +67,15 @@ namespace ShortenerBip.Middleware
             if (con.Users.Any(x => x.Token == token))
                 return true;
             return false;
-        }  
+        }
+
+
+        public static bool ValidateCredentialsForStats(string token,string AccountId, DataContext con)
+        {
+            if (con.Users.Any(x => x.Token == token && x.AccountId == AccountId))
+                return true;
+            return false;
+        }
+
     }
 }

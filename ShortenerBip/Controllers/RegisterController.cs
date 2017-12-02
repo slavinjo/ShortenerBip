@@ -34,7 +34,7 @@ namespace ShortenerBip.Controllers
         {
             return "URL Shortener Service Active";
         }
-        
+
 
         /*prebaci na Home*/
         //[HttpGet("/{id}")]
@@ -55,10 +55,13 @@ namespace ShortenerBip.Controllers
         //}
 
 
+
+        //[Authorize]
         [MiddlewareFilter(typeof(HeaderAuthorizationPipeline))]
         [HttpPost]
-        public JsonResult Post([FromBody]URLModel value)
+        public async Task<JsonResult> Post([FromBody]URLModel value)
         {
+           
             if (ModelState.IsValid)
             {
                 string accountID = "";
@@ -89,7 +92,7 @@ namespace ShortenerBip.Controllers
                 }
                 catch (Exception e)
                 {
-                    var jsonResult = new { error = "Authorization error!" };
+                    var jsonResult = new { error = "Authorization error! " + e.Message };
                     return new JsonResult(jsonResult);
                 }
 
@@ -103,10 +106,10 @@ namespace ShortenerBip.Controllers
                     {
                         var jsonResult = new { shortUrl = ExistingURL.ShortCode };
                         return new JsonResult(jsonResult);
-                    } 
+                    }
 
-                    bool check = _check.Check(value.RedirectURL).Result;
-                    if (check == true)
+                    var i = await _check.Check(value.RedirectURL);
+                    if (i == true)
                     {
                         try
                         {

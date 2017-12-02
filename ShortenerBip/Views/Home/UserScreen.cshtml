@@ -1,10 +1,24 @@
-﻿@model ShortenerBip.Models.User
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<User> SignInManager
+@model ShortenerBip.Models.User
+
 
 @{
     ViewData["Title"] = "User Created";
 }
 
-<h2>User Created</h2>
+
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <h2>User Logged in</h2>
+}
+else
+{
+    <h2>User Created</h2>
+}
+
+
 
 <div>
     <hr />
@@ -30,6 +44,57 @@
   
     </dl>
 </div>
-<div>    
+
+<div>
+    <form>
+
+        <span>New URL:</span>
+        <input id="URLRedirect" type="text" name="txtURLRedirect" />
+        <span>Redirect type:</span>
+        <input id="URLType" type="number" name="txtURLType" value="302" />
+        <input id="Submit1" type="submit" value="Register" onclick="CreateShortLink()" />
+
+    </form>
+</div>
+
+
+
+@Html.Partial("StatsView")
+
+
+
+<div>
     <a asp-action="Index">Back</a>
 </div>
+
+
+
+<script>
+        var token;
+        function CreateShortLink() {
+            var token = '@Model.Token';
+            var url = $('#URLRedirect').val();
+            var type = $('#URLType').val() == "" ? 302 : $('#URLType').val();
+           $.ajax({
+               headers: { "Authorization": token },
+                type: "POST",
+                url: "/Register",
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({ RedirectURL: url, RedirectType: type }),
+                async: false,
+                success: function (msg) {
+                    alert(JSON.stringify(msg, null, 4));
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //var json = JSON.parse(xhr);
+
+                    //     alert(xhr);
+                    alert(JSON.stringify(xhr, null, 4));
+                   // alert(token);
+
+                }
+            });
+        }
+
+</script>
