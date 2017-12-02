@@ -76,7 +76,6 @@ namespace ShortenerBip
             //app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseAuthentication();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

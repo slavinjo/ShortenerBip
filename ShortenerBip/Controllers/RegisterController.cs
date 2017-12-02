@@ -22,6 +22,11 @@ namespace ShortenerBip.Controllers
         CheckURL _check = new CheckURL();
         ShorterURL _shorter = new ShorterURL();
 
+        public static String getPath(HttpContext con)
+        {
+            return con.Request.Scheme + "://" + con.Request.Host.ToString() + "/";
+        }
+
         public RegisterController(DataContext context, IOptions<AppSettings> appSettings)
         {
             _context = context;
@@ -119,7 +124,8 @@ namespace ShortenerBip.Controllers
                             if (next != null)
                                 nextId = (int)next + 1;
 
-                            _model.ShortCode = _settings.AppUrl + ShorterURL.Encode(nextId);
+                            //_model.ShortCode = _settings.AppUrl + ShorterURL.Encode(nextId);
+                            _model.ShortCode = getPath(HttpContext) + ShorterURL.Encode(nextId);
                             _model.RedirectURL = value.RedirectURL;
                             _model.RedirectType = value.RedirectType;
                       
